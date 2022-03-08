@@ -68,12 +68,12 @@ if __name__ == "__main__":
             evals, evecs = G.eigen_decomp(normalization="combinatorial", k=args.numeigs, method="lowrank", q=150, c=50)
         G.save(graph_filename)
 
-    # MODELS = {'poisson':gl.ssl.poisson(G),  # poisson learning
-    #             'beta0':beta_learning(G),  # reweighted laplace learning, tau = 0
-    #             'beta01':beta_learning(G, tau=0.01),  # reweighted laplace learning, tau = 0.01
-    #              'beta1':beta_learning(G, tau=0.1)}   # reweighted laplace learning, tau = 0.1
     MODELS = {'poisson':gl.ssl.poisson(G),  # poisson learning
-                'beta0':beta_learning(G)}
+                'beta0':beta_learning(G),  # reweighted laplace learning, tau = 0
+                'beta01':beta_learning(G, tau=0.01),  # reweighted laplace learning, tau = 0.01
+                 'beta1':beta_learning(G, tau=0.1)}   # reweighted laplace learning, tau = 0.1
+    # MODELS = {'poisson':gl.ssl.poisson(G),  # poisson learning
+    #             'beta0':beta_learning(G)}
 
 
     results_directories = glob(os.path.join("results", f"{args.dataset}_results_*_{args.iters}/"))
@@ -125,8 +125,6 @@ if __name__ == "__main__":
         print(f"Consolidating accurary results of run in: {os.path.join(RESULTS_DIR)}...")
         for modelname_dir in glob(os.path.join(RESULTS_DIR, "*/")):
             accs_fnames = glob(os.path.join(modelname_dir, "acc_*.npy"))
-            print(os.path.join(modelname_dir, "acc_*.npy"))
-            print(accs_fnames)
             columns = {}
             for fname in accs_fnames:
                 acc = np.load(fname)
@@ -148,13 +146,10 @@ if __name__ == "__main__":
 
     results_models_directories = glob(os.path.join("results", f"{args.dataset}_results_*_{args.iters}", "*/"))
     acc_model_names_list = np.unique([fpath.split("/")[-2] for fpath in results_models_directories])
-    print(acc_model_names_list)
     for acc_model_name in tqdm(acc_model_names_list, desc=f"Saving results over all runs to: {overall_results_dir}", total=len(acc_model_names_list)):
         overall_results_file = os.path.join(overall_results_dir, f"{acc_model_name}_stats.csv")
         acc_files = glob(os.path.join("results", f"{args.dataset}_results_*_{args.iters}", f"{acc_model_name}", "accs.csv"))
-        print(acc_files)
         dfs = [pd.read_csv(f) for f in sorted(acc_files)]
-        print(dfs)
         possible_columns = reduce(np.union1d, [df.columns for df in dfs])
         all_columns = {}
         for col in possible_columns:

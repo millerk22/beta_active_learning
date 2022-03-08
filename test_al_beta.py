@@ -77,13 +77,13 @@ if __name__ == "__main__":
         G.save(graph_filename)
 
 
-    # MODELS = {'poisson':gl.ssl.poisson(G),  # poisson learning
-    #             'beta0':beta_learning(G),  # reweighted laplace learning, tau = 0
-    #             'beta01':beta_learning(G, tau=0.01),  # reweighted laplace learning, tau = 0.01
-    #              'beta1':beta_learning(G, tau=0.1)}   # reweighted laplace learning, tau = 0.1
-
     MODELS = {'poisson':gl.ssl.poisson(G),  # poisson learning
-                'beta0':beta_learning(G)}  # reweighted laplace learning, tau = 0
+                'beta0':beta_learning(G),  # reweighted laplace learning, tau = 0
+                'beta01':beta_learning(G, tau=0.01),  # reweighted laplace learning, tau = 0.01
+                 'beta1':beta_learning(G, tau=0.1)}   # reweighted laplace learning, tau = 0.1
+
+    # MODELS = {'poisson':gl.ssl.poisson(G),  # poisson learning
+    #             'beta0':beta_learning(G)}  # reweighted laplace learning, tau = 0
 
 
     model_names = [name.split(":")[1] for name in ACQS_MODELS]
