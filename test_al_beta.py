@@ -170,37 +170,3 @@ if __name__ == "__main__":
 
         Parallel(n_jobs=args.numcores)(delayed(active_learning_test)(acq_name, acq, mdlname, mdl, show) for acq_name, acq, mdlname, mdl, show \
                 in zip(acq_funcs_names, acq_funcs, model_names, models, show_bools))
-
-        # Consolidate results
-        print(f"Consolidating accurary results of run in: {os.path.join(RESULTS_DIR)}...")
-        for modelname_dir in glob(os.path.join(RESULTS_DIR, "*/")):
-            accs_fnames = glob(os.path.join(modelname_dir, "acc_*.csv"))
-            dfs = []
-            for fname in accs_fnames:
-                df = pd.read_csv(fname)
-                acq_func_name = "".join(fname.split("/")[-1].split(".")[0].split("_")[1:])
-                df.rename(columns=lambda name: acq_func_name + " : " + name, inplace=True)
-                dfs.append(df)
-            acc_df = pd.concat(dfs, axis=1)
-            acc_df.to_csv(os.path.join(modelname_dir, "accs.csv"), index=None)
-
-
-
-
-    # # Get average and std curves over all tests
-    # overall_results_dir = os.path.join("results", f"{args.dataset}_results_{args.iters}")
-    # if not os.path.exists(overall_results_dir):
-    #     os.makedirs(overall_results_dir)
-    # overall_results_file = os.path.join(overall_results_dir, "stats.csv")
-    # print(f"Saving results over all runs to: {overall_results_file}")
-    # acc_files = glob(os.path.join("results", f"{args.dataset}_results_*_{args.iters}", "accs.csv"))
-    # dfs = [pd.read_csv(f) for f in sorted(acc_files)]
-    # possible_columns = reduce(np.union1d, [df.columns for df in dfs])
-    # all_columns = {}
-    # for col in possible_columns:
-    #     vals = np.array([df[col].values for df in dfs if col in df.columns])
-    #     all_columns[col + " : avg"] = np.average(vals, axis=0)
-    #     all_columns[col + " : std"] = np.std(vals, axis=0)
-    #
-    # all_df = pd.DataFrame(all_columns)
-    # all_df.to_csv(overall_results_file, index=None)
