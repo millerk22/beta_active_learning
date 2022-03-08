@@ -2,17 +2,17 @@ import numpy as np
 from scipy.special import softmax
 
 
-def beta_var(A, candidate_set):
+def beta_var(A):
     a0 = A.sum(axis=1)
     a = (A * A).sum(axis=1)
-    return ((1. - a/(a0**2.))/(1. + a0))[candidate_set]
+    return ((1. - a/(a0**2.))/(1. + a0))
 
-def unc(u, candidate_set):
-    u_sort = np.sort(u[candidate_set])
+def unc(u):
+    u_sort = np.sort(u)
     return 1. - (u_sort[:,-1] - u_sort[:,-2]) # smallest margin acquisition function
 
 def uncsftmax(u):
-    s = softmax(u[candidate_set], axis=1)
+    s = softmax(u, axis=1)
     u_sort = np.sort(s)
     return 1. - (u_sort[:,-1] - u_sort[:,-2]) # smallest margin
 
@@ -20,19 +20,19 @@ def uncdist(u):
     '''
     Straightforward Euclidean distance to current pseudolabel
     '''
-    one_hot_predicted_labels = np.eye(u.shape[1])[np.argmax(u[candidate_set], axis=1)]
-    return  np.linalg.norm((u[candidate_set] - one_hot_predicted_labels), axis=1)
+    one_hot_predicted_labels = np.eye(u.shape[1])[np.argmax(u, axis=1)]
+    return  np.linalg.norm((u - one_hot_predicted_labels), axis=1)
 
 def uncsftmaxnorm(u):
     '''
     Project onto simplex and then Euclidean distance to current pseudolabel
     '''
     u_probs = softmax(u[candidate_set], axis=1)
-    one_hot_predicted_labels = np.eye(u.shape[1])[np.argmax(u[candidate_set], axis=1)]
+    one_hot_predicted_labels = np.eye(u.shape[1])[np.argmax(u, axis=1)]
     return np.linalg.norm((u_probs - one_hot_predicted_labels), axis=1)
 
 def uncnorm(u):
-    return 1. - np.linalg.norm(u[candidate_set], axis=1)
+    return 1. - np.linalg.norm(u, axis=1)
 
 def vopt(u, C_a, evecs, gamma=0.1):
     Cavk = C_a @ evecs.T
