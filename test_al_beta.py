@@ -107,7 +107,7 @@ if __name__ == "__main__":
         RESULTS_DIR = os.path.join("results", f"{args.dataset}_results_{seed}_{args.iters}")
         if not os.path.exists(RESULTS_DIR):
             os.makedirs(RESULTS_DIR)
-        np.save(os.path.join(RESULTS_DIR), "init_labeled.npy"), labeled_ind)
+        np.save(os.path.join(RESULTS_DIR, "init_labeled.npy"), labeled_ind)
 
         iters = args.iters
 
