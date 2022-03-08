@@ -28,12 +28,7 @@ ACQS = {'unc': unc,
         'random':random,
         'betavar':beta_var}
 
-# MODELS = {'poisson':gl.ssl.poisson(G),  # poisson learning
-#             'beta0':beta_learning(G),  # reweighted laplace learning, tau = 0
-#             'beta01':beta_learning(G, tau=0.01),  # reweighted laplace learning, tau = 0.01
-#              'beta1':beta_learning(G, tau=0.1)}   # reweighted laplace learning, tau = 0.1
-MODELS = {'poisson':gl.ssl.poisson(G),  # poisson learning
-            'beta0':beta_learning(G)}
+
 
 
 
@@ -62,7 +57,7 @@ if __name__ == "__main__":
     # Construct the similarity graph
     print(f"Constructing similarity graph for {args.dataset}")
     knn = 20
-    graph_filename = os.path.join("data", f"{args.dataset}_{knn}")
+    graph_filename = os.path.join("data", f"{args.dataset.split("-")[0]}_{knn}")
     try:
         G = gl.graph.load(graph_filename)
     except:
@@ -72,6 +67,13 @@ if __name__ == "__main__":
             print("Computing Eigendata...")
             evals, evecs = G.eigen_decomp(normalization="combinatorial", k=args.numeigs, method="lowrank", q=150, c=50)
         G.save(graph_filename)
+
+    # MODELS = {'poisson':gl.ssl.poisson(G),  # poisson learning
+    #             'beta0':beta_learning(G),  # reweighted laplace learning, tau = 0
+    #             'beta01':beta_learning(G, tau=0.01),  # reweighted laplace learning, tau = 0.01
+    #              'beta1':beta_learning(G, tau=0.1)}   # reweighted laplace learning, tau = 0.1
+    MODELS = {'poisson':gl.ssl.poisson(G),  # poisson learning
+                'beta0':beta_learning(G)}
 
 
     results_directories = glob(os.path.join("results", f"{args.dataset}_results_*_{args.iters}/"))
