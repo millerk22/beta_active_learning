@@ -66,6 +66,7 @@ if __name__ == "__main__":
     print(f"Constructing similarity graph for {args.dataset}")
     knn = 20
     graph_filename = os.path.join("data", f"{args.dataset.split("-")[0]}_{knn}")
+    print(graph_filename)
     try:
         G = gl.graph.load(graph_filename)
     except:
