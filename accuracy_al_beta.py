@@ -79,20 +79,23 @@ if __name__ == "__main__":
     results_directories = glob(os.path.join("results", f"{args.dataset}_results_*_{args.iters}/"))
 
     for out_num, RESULTS_DIR in enumerate(results_directories):
-        for num, model_name in enumerate(MODELS.keys()):
-            modelname_dir = os.path.join(RESULTS_DIR, model_name)
+        for num, acc_model_name in enumerate(MODELS.keys()):
+            modelname_dir = os.path.join(RESULTS_DIR, acc_model_name)
             if not os.path.exists(modelname_dir):
                 os.makedirs(modelname_dir)
 
             choices_fnames = glob(os.path.join(RESULTS_DIR, "choices_*.npy"))
             def compute_accuracies(choices_fname, show_tqdm):
                 # get copy of model on this cpu
-                model = deepcopy(MODELS[model_name])
+                model = deepcopy(MODELS[acc_model_name])
 
+
+                acq_func_name, modelname = choices_fname.split("_")[-2:]
+                modelname = modelname.split(".")[0]
                 # check if test already completed previously
-                acc_run_savename = os.path.join(RESULTS_DIR, f"choices_{acq_func_name}_{model_name}.npy")
+                acc_run_savename = os.path.join(RESULTS_DIR, f"choices_{acq_func_name}_{modelname}.npy")
                 if os.path.exists(acc_run_savename):
-                    print(f"Found choices for {acq_func_name} in {model_name}")
+                    print(f"Found choices for {acq_func_name} in {modelname}")
                     return
 
                 choices = np.load(choices_fname)
@@ -133,14 +136,14 @@ if __name__ == "__main__":
                     u = model.fit(train_ind, labels[train_ind])
                     acc = np.append(acc, gl.ssl.ssl_accuracy(model.predict(), labels, train_ind.size))
 
-                acc_dir = os.path.join(RESULTS_DIR, model_name)
+                acc_dir = os.path.join(RESULTS_DIR, acc_model_name)
                 if not os.path.exists(acc_dir):
                     os.makedirs(acc_dir)
-                np.save(os.path.join(acc_dir, f"acc_{acq_func_name}_{model_name}.npy"), acc)
-                np.save(os.path.join(RESULTS_DIR, f"choices_{acq_func_name}_{model_name}.npy"), train_ind)
+
+                np.save(os.path.join(acc_dir, f"acc_{acq_func_name}_{modelname}.npy"), acc)
                 return
 
-            print(f"--Accuracies for {model_name}, {num+1}/{len(MODELS)} in {RESULTS_DIR} ({out_num+1}/{len(results_directories)})--")
+            print(f"--Accuracies for {acc_model_name}, {num+1}/{len(MODELS)} in {RESULTS_DIR} ({out_num+1}/{len(results_directories)})--")
             # show_bools is for tqdm iterator to track progress of some
             show_bools = np.zeros(len(choices_fnames), dtype=bool)
             show_bools[::args.numcores] = True
@@ -174,10 +177,10 @@ if __name__ == "__main__":
         os.makedirs(overall_results_dir)
 
     results_models_directories = glob(os.path.join("results", f"{args.dataset}_results_*_{args.iters}", "*/"))
-    model_names_list = np.unique([fpath.split("/")[-1] for fpath in results_models_directories])
-    for model_name in tqdm(model_names_list, desc=f"Saving results over all runs to: {overall_results_dir}", total=len(model_names_list)):
-        overall_results_file = os.path.join(overall_results_dir, f"{model_name}_stats.csv")
-        acc_files = glob(os.path.join("results", f"{args.dataset}_results_*_{args.iters}", f"{model_name}", "accs.csv"))
+    acc_model_names_list = np.unique([fpath.split("/")[-1] for fpath in results_models_directories])
+    for acc_model_name in tqdm(acc_model_names_list, desc=f"Saving results over all runs to: {overall_results_dir}", total=len(acc_model_names_list)):
+        overall_results_file = os.path.join(overall_results_dir, f"{acc_model_name}_stats.csv")
+        acc_files = glob(os.path.join("results", f"{args.dataset}_results_*_{args.iters}", f"{acc_model_name}", "accs.csv"))
         dfs = [pd.read_csv(f) for f in sorted(acc_files)]
         possible_columns = reduce(np.union1d, [df.columns for df in dfs])
         all_columns = {}
