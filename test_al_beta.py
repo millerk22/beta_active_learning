@@ -66,7 +66,6 @@ if __name__ == "__main__":
     print(f"Constructing similarity graph for {args.dataset}")
     knn = 20
     graph_filename = os.path.join("data", f"{args.dataset.split('-')[0]}_{knn}")
-    print(graph_filename)
     try:
         G = gl.graph.load(graph_filename)
     except:
@@ -142,7 +141,7 @@ if __name__ == "__main__":
                     k = np.random.choice(candidate_set)
                 else:
                     if acq_func_name in ["betavar"]:
-                        acq_func_vals = acq_func(model.A, candidate_set)
+                        acq_func_vals = acq_func(model.A)
                     elif acq_func_name in ["mc", "mcvopt", "vopt"]:
                         C_a = np.linalg.inv(np.diag(evals) + evecs[train_ind,:].T @ evecs[train_ind,:] / args.gamma**2.)
                         acq_func_vals = acq_func(u, C_a, evecs, gamma=args.gamma)
