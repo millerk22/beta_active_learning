@@ -99,6 +99,7 @@ if __name__ == "__main__":
                 else:
                     iterator_object = range(labeled_ind.size,choices.size)
 
+                acc = np.array([])
                 for j in iterator_object:
                     train_ind = choices[:j]
                     u = model.fit(train_ind, labels[train_ind])
