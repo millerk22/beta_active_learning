@@ -12,7 +12,7 @@ import os
 from glob import glob
 from scipy.special import softmax
 from functools import reduce
-from gl_models import poisson_rw_laplace
+from gl_models import beta_learning
 from acquisitions import *
 
 
@@ -151,6 +151,7 @@ if __name__ == "__main__":
                 elif acq_func_name in ["betavar"]:
                     u = model.fit(train_ind, labels[train_ind])
                     acq_func_vals = acq_func(model.A, candidate_set)
+                    acq_func_vals = acq_func_vals[candidate_set]
 
                     # active learning query choice
                     maximizer_inds = np.where(np.isclose(acq_func_vals, acq_func_vals.max()))[0]
@@ -158,7 +159,8 @@ if __name__ == "__main__":
 
                 else:
                     u = model.fit(train_ind, labels[train_ind])
-                    acq_func_vals = acq_func(u, candidate_set)
+                    acq_func_vals = acq_func(u)
+                    acq_func_vals = acq_func_vals[candidate_set]
 
                     # active learning query choice
                     maximizer_inds = np.where(np.isclose(acq_func_vals, acq_func_vals.max()))[0]
