@@ -21,7 +21,7 @@ def get_poisson_weighting(G, train_ind, tau=0.0):
 
     return w
 
-    
+
 class poisson_rw_laplace(gl.ssl.ssl):
     def __init__(self, W=None, class_priors=None, tau=0.0, normalization='combinatorial', tol=1e-5, alpha=2, zeta=1e7, r=0.1):
         """Laplace Learning
@@ -125,4 +125,92 @@ class poisson_rw_laplace(gl.ssl.ssl):
         u[idx,:] = v
         u[train_ind,:] = F
 
+        return u
+
+
+'''
+Need to make propagation individualized at each node.
+* poisson learning with tau
+'''
+
+class beta_learning(gl.ssl.ssl):
+    def __init__(self, W=None, class_priors=None, propagation='poisson', tau=None, eval_cutoff=50):
+        """Beta Learning
+        ===================
+
+        Semi-supervised learning
+        Parameters
+        ----------
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
+            Weight matrix representing the graph.
+        class_priors : numpy array (optional), default=None
+            Class priors (fraction of data belonging to each class). If provided, the predict function
+            will attempt to automatic balance the label predictions to predict the correct number of
+            nodes in each class.
+        propagation : str, default='poisson'
+            Which propagation from labeled points to use for alpha and beta. Possibilities include: 'poisson' and 'spectral'
+        eval_cutoff : int, default=50
+            If propagation = 'spectral', this controls the number of eigenvalues/vectors to use in spectral propagation.
+        """
+        super().__init__(W, class_priors)
+
+        self.propagation = propagation
+        self.tau = tau
+        self.train_ind = np.array([])
+
+        if self.propagation == 'spectral':
+            self.evals, self.evecs = G.eigen_decomp(normalization='combinatorial', k=eval_cutoff, method='lowrank', q=150, c=50)
+
+        #Setup accuracy filename
+        fname = '_beta'
+        self.name = f'Beta Learning tau = {self.tau}'
+
+        self.accuracy_filename = fname
+
+
+    def _fit(self, train_ind, train_labels, all_labels=None):
+        if train_ind.size >= self.train_ind.size:
+            mask = ~np.isin(train_ind, self.train_ind)
+            prop_ind = train_ind[np.where(mask)[0]]
+            prop_labels = train_labels[np.where(mask)[0]]
+        else: # if give fewer training labels than before, we assume that this is a "new" instantiation
+            prop_ind, prop_labels = train_ind, train_labels
+            mask = np.ones(3, dtype=bool)
+        self.train_ind = train_ind
+
+        # Poisson propagation
+        if self.propagation == "poisson":
+            n, num_prop, nc = self.graph.num_nodes, prop_ind.size, np.unique(train_labels).size
+            F = np.zeros((n, num_prop))
+            F[prop_ind,:] = np.eye(num_prop)
+            if self.tau is None:
+                F -= np.mean(F, axis=0)
+
+
+            L = self.graph.laplacian()
+            if self.tau is not None:
+                L += self.tau*sparse.eye(L.shape[0])
+
+
+            P = gl.utils.conjgrad(L, F, tol=1e-5)
+            if self.tau is None:
+                P -= np.min(P, axis=0)
+
+            P /= P[prop_ind,np.arange(F.shape[1])][np.newaxis,:] # scale by the value at the point sources
+
+            if mask.all(): # prop_ind == train_ind, so all inds are "new"
+                self.A = np.ones((n, nc))  # Dir(1,1,1,...,1) prior on each node
+
+            # Add propagations according to class for the propagation inds (prop_inds)
+            for c in np.unique(prop_labels):
+                self.A[:, c] += np.sum(P[:,np.where(prop_labels == c)[0]], axis=1) # sum propagations together according to class
+
+
+        if self.propagation == "spectral":
+            assert np.isin(np.unique(train_labels), np.array([0,1])).all()
+            c0_ind, c1_ind = train_ind[train_labels == 0], train_ind[train_labels == 1]
+            alpha, beta = prop_alpha_beta_thresh(self.evecs, self.evals, c0_ind, c1_ind, .1, thresh=1e-9)
+            self.A = np.hstack((beta[:,np.newaxis], alpha[:,np.newaxis])) + 1. # include the Beta(1,1) prior
+
+        u = self.A / (self.A.sum(axis=1)[:,np.newaxis]) # mean estimator
         return u
