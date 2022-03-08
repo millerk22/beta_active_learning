@@ -18,7 +18,7 @@ from acquisitions import *
 
 from joblib import Parallel, delayed
 
-ACQS_MODELS = ["betavar:beta0", "random:poisson", "uncsftmaxnorm:poisson"]
+ACQS_MODELS = ["betavar:beta0", "betavar:beta01", "betavar:beta1", "random:poisson"]
 
 ACQS = {'unc': unc,
         'uncsftmax':uncsftmax,

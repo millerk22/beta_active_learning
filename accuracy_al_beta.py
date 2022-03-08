@@ -38,7 +38,7 @@ if __name__ == "__main__":
     parser = ArgumentParser(description="Compute Accuracies in Parallel of Active Learning Tests for Beta Learning")
     parser.add_argument("--dataset", type=str, default='mnist-evenodd')
     parser.add_argument("--metric", type=str, default='vae')
-    parser.add_argument("--numcores", type=int, default=6)
+    parser.add_argument("--numcores", type=int, default=8)
     parser.add_argument("--iters", type=int, default=100)
     args = parser.parse_args()
 
