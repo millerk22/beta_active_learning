@@ -125,6 +125,7 @@ if __name__ == "__main__":
         print(f"Consolidating accurary results of run in: {os.path.join(RESULTS_DIR)}...")
         for modelname_dir in glob(os.path.join(RESULTS_DIR, "*/")):
             accs_fnames = glob(os.path.join(modelname_dir, "acc_*.csv"))
+            print(os.path.join(modelname_dir, "acc_*.csv"))
             print(accs_fnames)
             columns = {}
             for fname in accs_fnames:
