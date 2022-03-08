@@ -88,51 +88,19 @@ if __name__ == "__main__":
             def compute_accuracies(choices_fname, show_tqdm):
                 # get copy of model on this cpu
                 model = deepcopy(MODELS[acc_model_name])
-
-
                 acq_func_name, modelname = choices_fname.split("_")[-2:]
                 modelname = modelname.split(".")[0]
-                # check if test already completed previously
-                acc_run_savename = os.path.join(RESULTS_DIR, f"choices_{acq_func_name}_{modelname}.npy")
-                if os.path.exists(acc_run_savename):
-                    print(f"Found choices for {acq_func_name} in {modelname}")
-                    return
 
                 choices = np.load(choices_fname)
-                train_ind = np.load(os.path.join(RESULTS_DIR, "init_labeled.npy"))
-                u = model.fit(train_ind, labels[train_ind])
-                acc = np.array([gl.ssl.ssl_accuracy(model.predict(), labels, train_ind.size)])
+                labeled_ind = np.load(os.path.join(RESULTS_DIR, "init_labeled.npy"))
 
                 if show_tqdm:
-                    iterator_object = tqdm(range(train_ind.size,choices.size), desc=f"{args.dataset} test {it+1}/{args.numtests}, seed = {seed}")
+                    iterator_object = tqdm(range(labeled_ind.size,choices.size), desc=f"Computing Acc of {acq_func_name}-{modelname}")
                 else:
-                    iterator_object = range(train_ind.size,choices.size)
+                    iterator_object = range(labeled_ind.size,choices.size)
 
                 for j in iterator_object:
-                    if trainset is None:
-                        candidate_set = np.delete(np.arange(G.num_nodes), train_ind)
-                    else:
-                        candidate_set = np.delete(trainset, train_ind)
-
-                    if acq_func_name == "random":
-                        k = np.random.choice(candidate_set)
-                    else:
-                        if acq_func_name in ["betavar"]:
-                            acq_func_vals = acq_func(model.A, candidate_set)
-                        elif acq_func_name in ["mc", "mcvopt", "vopt"]:
-                            C_a = np.linalg.inv(np.diag(evals) + evecs[train_ind,:].T @ evecs[train_ind,:] / args.gamma**2.)
-                            acq_func_vals = acq_func(u, C_a, evecs, gamma=args.gamma)
-                        else:
-                            acq_func_vals = acq_func(u)
-
-                        # active learning query choice
-                        acq_func_vals = acq_func_vals[candidate_set]
-                        maximizer_inds = np.where(np.isclose(acq_func_vals, acq_func_vals.max()))[0]
-                        k = candidate_set[np.random.choice(maximizer_inds)]
-
-
-                    # oracle and model update
-                    train_ind = np.append(train_ind, k)
+                    train_ind = choices[:j]
                     u = model.fit(train_ind, labels[train_ind])
                     acc = np.append(acc, gl.ssl.ssl_accuracy(model.predict(), labels, train_ind.size))
 
@@ -143,7 +111,7 @@ if __name__ == "__main__":
                 np.save(os.path.join(acc_dir, f"acc_{acq_func_name}_{modelname}.npy"), acc)
                 return
 
-            print(f"--Accuracies for {acc_model_name}, {num+1}/{len(MODELS)} in {RESULTS_DIR} ({out_num+1}/{len(results_directories)})--")
+            print(f"-------- Computing Accuracies in {acc_model_name}, {num+1}/{len(MODELS)} in {RESULTS_DIR} ({out_num+1}/{len(results_directories)}) -------")
             # show_bools is for tqdm iterator to track progress of some
             show_bools = np.zeros(len(choices_fnames), dtype=bool)
             show_bools[::args.numcores] = True
