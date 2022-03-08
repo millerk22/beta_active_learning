@@ -175,7 +175,7 @@ if __name__ == "__main__":
 
     results_models_directories = glob(os.path.join("results", f"{args.dataset}_results_*_{args.iters}", "*/"))
     model_names_list = np.unique([fpath.split("/")[-1] for fpath in results_models_directories])
-    for model_name in tqdm(model_names_list, desc=f"Saving results over all runs to: {overall_results_dir}"), total=len(model_names_list)):
+    for model_name in tqdm(model_names_list, desc=f"Saving results over all runs to: {overall_results_dir}", total=len(model_names_list)):
         overall_results_file = os.path.join(overall_results_dir, f"{model_name}_stats.csv")
         acc_files = glob(os.path.join("results", f"{args.dataset}_results_*_{args.iters}", f"{model_name}", "accs.csv"))
         dfs = [pd.read_csv(f) for f in sorted(acc_files)]
