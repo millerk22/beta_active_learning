@@ -86,6 +86,14 @@ if __name__ == "__main__":
 
             choices_fnames = glob(os.path.join(RESULTS_DIR, "choices_*.npy"))
             def compute_accuracies(choices_fname, show_tqdm):
+                acc_dir = os.path.join(RESULTS_DIR, acc_model_name)
+                if not os.path.exists(acc_dir):
+                    os.makedirs(acc_dir)
+
+                acc_fname = os.path.join(acc_dir, f"acc_{acq_func_name}_{modelname}.npy")
+                if os.path.exists(acc_fname):
+                    return
+
                 # get copy of model on this cpu
                 model = deepcopy(MODELS[acc_model_name])
                 acq_func_name, modelname = choices_fname.split("_")[-2:]
@@ -104,12 +112,8 @@ if __name__ == "__main__":
                     train_ind = choices[:j]
                     u = model.fit(train_ind, labels[train_ind])
                     acc = np.append(acc, gl.ssl.ssl_accuracy(model.predict(), labels, train_ind.size))
-
-                acc_dir = os.path.join(RESULTS_DIR, acc_model_name)
-                if not os.path.exists(acc_dir):
-                    os.makedirs(acc_dir)
-
-                np.save(os.path.join(acc_dir, f"acc_{acq_func_name}_{modelname}.npy"), acc)
+                
+                np.save(acc_fname, acc)
                 return
 
             print(f"-------- Computing Accuracies in {acc_model_name}, {num+1}/{len(MODELS)} in {RESULTS_DIR} ({out_num+1}/{len(results_directories)}) -------")

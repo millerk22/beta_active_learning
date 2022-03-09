@@ -66,6 +66,14 @@ if __name__ == "__main__":
     print(f"Constructing similarity graph for {args.dataset}")
     knn = 20
     graph_filename = os.path.join("data", f"{args.dataset.split('-')[0]}_{knn}")
+
+    normalization = "combinatorial"
+    method = "lowrank"
+    if dataset.split("-")[0] in ["fashionmnist", "cifar"]:
+        normalization = "normalized"
+    if labels.size < 10000:
+        method = "exact"
+
     try:
         G = gl.graph.load(graph_filename)
     except:
@@ -73,7 +81,8 @@ if __name__ == "__main__":
         G = gl.graph(W)
         if np.isin(acq_funcs_names, ["mc", "vopt", "mcvopt"]).any():
             print("Computing Eigendata...")
-            evals, evecs = G.eigen_decomp(normalization="combinatorial", k=args.numeigs, method="lowrank", q=150, c=50)
+
+            evals, evecs = G.eigen_decomp(normalization=normalization, k=args.numeigs, method=method, q=150, c=50)
         G.save(graph_filename)
 
 
@@ -96,7 +105,7 @@ if __name__ == "__main__":
     # eigendecomposition for VOpt, MC, MCVOPT criterions
     if np.isin(acq_funcs_names, ["mc", "vopt", "mcvopt"]).any():
         print("Retrieving Eigendata...")
-        evals, evecs = G.eigen_decomp(normalization="combinatorial", k=args.numeigs, method="lowrank", q=150, c=50)
+        evals, evecs = G.eigen_decomp(normalization=normalization, k=args.numeigs, method=method, q=150, c=50)
         evals, evecs = evals[1:], evecs[:,1:]  # we will ignore the first eigenvalue/vector
 
 
