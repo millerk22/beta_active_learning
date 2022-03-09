@@ -90,14 +90,14 @@ if __name__ == "__main__":
                 if not os.path.exists(acc_dir):
                     os.makedirs(acc_dir)
 
+                acq_func_name, modelname = choices_fname.split("_")[-2:]
+                modelname = modelname.split(".")[0]
                 acc_fname = os.path.join(acc_dir, f"acc_{acq_func_name}_{modelname}.npy")
                 if os.path.exists(acc_fname):
                     return
 
                 # get copy of model on this cpu
                 model = deepcopy(MODELS[acc_model_name])
-                acq_func_name, modelname = choices_fname.split("_")[-2:]
-                modelname = modelname.split(".")[0]
 
                 choices = np.load(choices_fname)
                 labeled_ind = np.load(os.path.join(RESULTS_DIR, "init_labeled.npy"))
@@ -112,7 +112,7 @@ if __name__ == "__main__":
                     train_ind = choices[:j]
                     u = model.fit(train_ind, labels[train_ind])
                     acc = np.append(acc, gl.ssl.ssl_accuracy(model.predict(), labels, train_ind.size))
-                
+
                 np.save(acc_fname, acc)
                 return
 
