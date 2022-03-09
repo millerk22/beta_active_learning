@@ -18,7 +18,7 @@ from acquisitions import *
 
 from joblib import Parallel, delayed
 
-ACQS_MODELS = ["betavar:beta0", "betavar:beta01", "betavar:beta1", "random:poisson"]
+ACQS_MODELS = ["vopt:laplace", "mcvopt:laplace", "mc:laplace"]
 
 ACQS = {'unc': unc,
         'uncsftmax':uncsftmax,
@@ -87,6 +87,7 @@ if __name__ == "__main__":
 
 
     MODELS = {'poisson':gl.ssl.poisson(G),  # poisson learning
+                'laplace':gl.ssl.laplace(G), # laplace learning
                 'beta0':beta_learning(G),  # reweighted laplace learning, tau = 0
                 'beta01':beta_learning(G, tau=0.01),  # reweighted laplace learning, tau = 0.01
                  'beta1':beta_learning(G, tau=0.1)}   # reweighted laplace learning, tau = 0.1
